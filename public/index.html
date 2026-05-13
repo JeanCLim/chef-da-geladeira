@@ -10,14 +10,17 @@
     <div class="container">
       <h1>O Chef da Geladeira</h1>
       <h2>Digite os ingredientes em inglês!</h2>
-      <div class="search-box">
-        <input
-          type="text"
-          id="ingredientes"
-          placeholder="Ex: tomato, egg, cheese"
-        />
-        <button onclick="buscarReceitas()">Cozinhar!</button>
-      </div>
+      <!-- Troque aquela sua div do input por isto: -->
+<form id="form-busca" class="search-box">
+  <input
+    type="text"
+    id="ingredientes"
+    name="ingredientes" <!-- O 'name' é crucial para a URL -->
+    placeholder="Ex: tomato, egg, cheese"
+    required
+  />
+  <button type="submit">Cozinhar!</button>
+</form>
       <div id="resultados" class="cards-container"></div>
     </div>
 
