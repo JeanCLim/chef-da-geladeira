@@ -1,11 +1,19 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const axios = require("axios");
 const cors = require("cors");
 
 const app = express();
 app.use(cors());
-app.use(express.static("public")); // Serve os arquivos da pasta public (HTML/CSS)
+
+// Serve os arquivos estáticos da pasta public
+app.use(express.static(path.join(__dirname, "public")));
+
+// Rota para forçar o carregamento do HTML na página inicial
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Rota principal da API
 app.get("/receitas", async (req, res) => {
@@ -53,15 +61,7 @@ app.get("/receitas", async (req, res) => {
   }
 });
 
-// O segredo é esse "process.env.PORT"
-const port = process.env.PORT || 3000;
-
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
-});
-// ... código anterior ...
-
-// Rota Nova: Busca detalhes de UMA receita específica pelo ID
+// Rota: Busca detalhes de UMA receita específica pelo ID
 app.get("/detalhes/:id", async (req, res) => {
   const { id } = req.params; // Pega o ID que veio na URL
 
@@ -83,10 +83,13 @@ app.get("/detalhes/:id", async (req, res) => {
   }
 });
 
+// O segredo é esse "process.env.PORT"
+const port = process.env.PORT || 3000;
+
+// Liga o servidor (Apenas UMA vez no final do arquivo)
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
 
 // Adicione esta linha aqui para o Vercel entender a sua API!
 module.exports = app;
-// app.listen(...) vem aqui em baixo
