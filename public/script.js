@@ -2,19 +2,18 @@
 document
   .getElementById("form-busca")
   .addEventListener("submit", function (event) {
-    event.preventDefault(); // Impede a página de piscar
+    event.preventDefault();
 
     const input = document.getElementById("ingredientes").value;
 
-    // Muda a URL do navegador na mesma hora, sem recarregar a página inteira
-    // Ficará: /receitas?ingredientes=tomato
+    // CORREÇÃO: Agora usamos a raiz '/' para a URL do navegador.
+    // Isso evita que o reload chame o JSON puro.
     window.history.pushState(
       {},
       "",
-      `/receitas?ingredientes=${encodeURIComponent(input)}`,
+      `/?ingredientes=${encodeURIComponent(input)}`,
     );
 
-    // Chama a função que busca no backend
     buscarEExibirReceitas(input);
   });
 
@@ -25,18 +24,20 @@ async function buscarEExibirReceitas(ingredientes) {
     '<p style="text-align:center">Procurando no livro de receitas...</p>';
 
   try {
-    // Nós já criamos essa rota '/receitas' no seu server.js!
-    const resposta = await fetch("/receitas?ingredientes=" + ingredientes);
+    // CORREÇÃO: O fetch agora chama a rota da API '/api/receitas'
+    const resposta = await fetch("/api/receitas?ingredientes=" + ingredientes);
     const receitas = await resposta.json();
 
     divResultados.innerHTML = "";
 
-    // O código de montar as 'cards' que você já tinha vai aqui...
     if (receitas.length === 0) {
       divResultados.innerHTML =
         "<p>Nenhuma receita encontrada com esses ingredientes :(</p>";
       return;
     }
+
+    // Salvamos no histórico (localStorage) após uma busca com sucesso
+    salvarNoHistorico(ingredientes);
 
     receitas.forEach((receita) => {
       const card = `
@@ -57,28 +58,26 @@ async function buscarEExibirReceitas(ingredientes) {
   }
 }
 
-// 3. O Detetive da URL (Quando a página carrega)
+// 3. O Detetive da URL (Quando a página carrega ou dá F5)
 window.addEventListener("DOMContentLoaded", () => {
-  // Lê a URL do navegador. Ex: /receitas?ingredientes=tomato
+  carregarHistorico(); // Carrega as tags do histórico salvas
+
   const parametrosUrl = new URLSearchParams(window.location.search);
   const ingredientesDaUrl = parametrosUrl.get("ingredientes");
 
-  // Se a pessoa entrou pelo link já pesquisando algo...
   if (ingredientesDaUrl) {
-    document.getElementById("ingredientes").value = ingredientesDaUrl; // Preenche o campo
-    buscarEExibirReceitas(ingredientesDaUrl); // Busca automaticamente
+    document.getElementById("ingredientes").value = ingredientesDaUrl;
+    buscarEExibirReceitas(ingredientesDaUrl);
   }
 });
 
-// A sua função de verDetalhes(id) continua aqui embaixo normal...
+// --- FUNÇÕES AUXILIARES ---
 
-// Nova função que chama a rota de detalhes
 async function verDetalhes(id) {
   try {
     const novaAba = window.open("", "_blank");
     novaAba.document.write("<h1>Carregando a receita...</h1>");
 
-    // CORREÇÃO AQUI: Chama a rota certa usando o ID
     const resposta = await fetch("/detalhes/" + id);
     const dados = await resposta.json();
 
@@ -92,4 +91,38 @@ async function verDetalhes(id) {
     console.error(erro);
     alert("Erro ao abrir a receita.");
   }
+}
+
+function salvarNoHistorico(ingredientes) {
+  let historico = JSON.parse(localStorage.getItem("historicoChef")) || [];
+  historico = historico.filter((item) => item !== ingredientes);
+  historico.unshift(ingredientes);
+  if (historico.length > 5) historico.pop();
+  localStorage.setItem("historicoChef", JSON.stringify(historico));
+  carregarHistorico();
+}
+
+function carregarHistorico() {
+  const divHistorico = document.getElementById("historico-buscas");
+  if (!divHistorico) return;
+
+  let historico = JSON.parse(localStorage.getItem("historicoChef")) || [];
+  if (historico.length === 0) return;
+
+  let html = "<p>Últimas buscas:</p><div class='tags-container'>";
+  historico.forEach((item) => {
+    html += `<span class="tag-historico" onclick="refazerBusca('${item}')">${item}</span>`;
+  });
+  html += "</div>";
+  divHistorico.innerHTML = html;
+}
+
+function refazerBusca(ingredientes) {
+  document.getElementById("ingredientes").value = ingredientes;
+  window.history.pushState(
+    {},
+    "",
+    `/?ingredientes=${encodeURIComponent(ingredientes)}`,
+  );
+  buscarEExibirReceitas(ingredientes);
 }

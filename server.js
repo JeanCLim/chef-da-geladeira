@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 });
 
 // Rota principal da API
-app.get("/receitas", async (req, res) => {
+app.get("/api/receitas", async (req, res) => {
   const ingredientes = req.query.ingredientes;
 
   // ESPIÃO 1: Vendo se o pedido chegou
