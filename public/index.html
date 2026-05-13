@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta charset="UTF-8" />
+    <title>O Chef da Geladeira</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>O Chef da Geladeira</h1>
+      <h2>Digite os ingredientes em inglês!</h2>
+      <div class="search-box">
+        <input
+          type="text"
+          id="ingredientes"
+          placeholder="Ex: tomato, egg, cheese"
+        />
+        <button onclick="buscarReceitas()">Cozinhar!</button>
+      </div>
+      <div id="resultados" class="cards-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
